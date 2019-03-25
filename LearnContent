@@ -26,6 +26,12 @@ namespace WOpencv
     {
         private string curFileName;//保存当前文件路径
         private IntPtr img;//保存当前图片句柄
+         private Image IntPtrToImg(IntPtr srcImg)//将Opencv图像转换为C#图像
+        {
+            Image<Bgr, byte> dest = new Image<Bgr, byte>(CvInvoke.cvGetSize(srcImg));
+            CvInvoke.cvCopy(srcImg, dest, IntPtr.Zero);
+            return dest.ToBitmap();
+        }
         public frmMain()
         {
             InitializeComponent();
@@ -42,7 +48,6 @@ namespace WOpencv
                 curFileName = opnDlg.FileName;
               try
                 {
-                    //curBitmap = (Bitmap)Image.FromFile(curFileName);
                     img = CvInvoke.cvLoadImage(curFileName, LOAD_IMAGE_TYPE.CV_LOAD_IMAGE_ANYCOLOR);//加载图像
                 
                 }
@@ -53,9 +58,7 @@ namespace WOpencv
             }
             if(img!=null)
             {
-                Image<Bgr, byte> dest = new Image<Bgr, byte>(CvInvoke.cvGetSize(img));//加载到pictureBox控件
-                CvInvoke.cvCopy(img, dest, IntPtr.Zero);
-                picBox.Image = dest.ToBitmap();
+                picBox.Image = IntPtrToImg(img);
             }
         }
 
