@@ -1,0 +1,72 @@
+学习使用C#进行Opencv开发（1）。
+（1）环境配置
+下载Emgu.cv文件。地址为：https://sourceforge.net/projects/emgucv/reviews
+本次下载的是：libemgucv-windows-universal-2.4.10.1940.exe
+（2）安装到文件夹E:\OpenCv2\emgucv-windows-universal 2.4.10.1940
+（3）添加环境变量：E:\OpenCv2\emgucv-windows-universal 2.4.10.1940\bin
+（4）VS2015创建C# Windows项目,添加引用，浏览到bin目录下的Emgu.CV和Emgu.Util。
+（5）加载图像并设置到PictureBox。
+代码为：
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using Emgu.CV;
+using Emgu.CV.CvEnum;
+using Emgu.CV.Structure;
+using Emgu.Util;
+namespace WOpencv
+{
+    public partial class frmMain : Form
+    {
+        private string curFileName;//保存当前文件路径
+        private IntPtr img;//保存当前图片句柄
+        public frmMain()
+        {
+            InitializeComponent();
+        }
+
+        private void btnOpen_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog opnDlg = new OpenFileDialog();
+            opnDlg.Filter = "图像文件|*.bmp;*.jpg;*.png;*.gif;";
+            opnDlg.Title = "打开图像文件";
+            opnDlg.ShowHelp = true;
+            if(opnDlg.ShowDialog()==DialogResult.OK)
+            {
+                curFileName = opnDlg.FileName;
+              try
+                {
+                    //curBitmap = (Bitmap)Image.FromFile(curFileName);
+                    img = CvInvoke.cvLoadImage(curFileName, LOAD_IMAGE_TYPE.CV_LOAD_IMAGE_ANYCOLOR);//加载图像
+                
+                }
+                catch(Exception exp)
+                {
+                    MessageBox.Show(exp.Message);
+                }
+            }
+            if(img!=null)
+            {
+                Image<Bgr, byte> dest = new Image<Bgr, byte>(CvInvoke.cvGetSize(img));//加载到pictureBox控件
+                CvInvoke.cvCopy(img, dest, IntPtr.Zero);
+                picBox.Image = dest.ToBitmap();
+            }
+        }
+
+        private void btnExit_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+        private void btnGray_Click(object sender, EventArgs e)
+        {
+
+        }
+    }
+}
