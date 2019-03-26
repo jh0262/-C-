@@ -1,0 +1,40 @@
+多线程编程（2）——用多线程对图像进行处理，再回传到前端
+ public struct MatData{
+        public Mat img;
+        public bool bShow;
+    };//数据结构，用于向线程传递参数
+设计思路：使用结构体作为参数进行传递给计算线程，同样先要进行控件事件的委托
+        delegate void SetPicBoxCallback(Bitmap bmp);//声明委托
+        private void SetPicBox(Bitmap bmp)
+        {
+            if(this.picBox.InvokeRequired)
+            {
+                SetPicBoxCallback d = new SetPicBoxCallback(SetPicBox);
+                this.Invoke(d, new object[] { bmp });
+            }
+            else
+            {
+                this.picBox.Image = bmp;
+            }
+        }
+        public void ThreadSetPicbox(object obj)//线程函数只能是object类型的参数，因此需要定义结构体，进行线程参数传递
+        {
+            //线程对img进行处理，处理完成后，将结果赋值给PicBox。
+            MatData imgData=(MatData) obj;
+            try
+            {
+                Mat temp = new Mat();
+                CvInvoke.CvtColor(imgData.img, temp, ColorConversion.Rgb2Gray);
+                SetPicBox(temp.Bitmap);
+            }
+            catch (Exception exp)
+            {
+                MessageBox.Show(exp.Message);
+            }
+        }
+        //线程调用代码，首先封装参数，然后进行线程启动。
+            Thread thread = new Thread(new ParameterizedThreadStart(ThreadSetPicbox));
+            MatData d = new MatData();
+            d.img = mImg;
+            d.bShow = true;
+            thread.Start(d);
