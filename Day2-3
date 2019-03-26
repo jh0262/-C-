@@ -1,0 +1,52 @@
+多线程参数传递——类传递方法
+设计思路：设计一个类用于处理图像，然后将处理结果回显到控件中
+类的变量应该包含原图像、要显示的控件。遵循委托的原则，依然要对控件进行委托处理。
+ public class MatManager
+    {
+        private Mat m_srcImg;//原图像
+        private Thread m_thread;//线程变量
+        private PictureBox m_picBox;//外部窗体中的控件对象
+        delegate void SetPicBoxCallback(Bitmap bmp);//设置委托进行回调显示处理完成的结果
+        private void SetPicBox(Bitmap bmp)//进行控件内容修正
+        {
+            if (this.m_picBox.InvokeRequired)
+            {
+                SetPicBoxCallback d = new SetPicBoxCallback(SetPicBox);
+                this.m_picBox.Invoke(d, new object[] { bmp });
+            }
+            else
+            {
+                this.m_picBox.Image = bmp;
+            }
+        }
+        
+        public MatManager(Mat src,PictureBox pic)//类的构造函数
+        {
+            this.m_srcImg = src;
+            this.m_picBox = pic;
+            m_thread = new Thread(new ThreadStart(this.MatProcess));
+        }
+        public void Start()//启动线程完成数据处理
+        {
+            if (m_thread != null)
+            {
+                m_thread.Start();
+            }
+        }
+        public void MatProcess()//对所要处理的图像进行处理，源图像为类的成员。
+        {
+            try
+            {
+                Mat temp = new Mat();
+                CvInvoke.CvtColor(m_srcImg, temp, ColorConversion.Rgb2Gray);
+                SetPicBox(temp.Bitmap);
+            }
+            catch (Exception exp)
+            {
+                MessageBox.Show(exp.Message);
+            }
+        }
+    }
+    调用的话，在哪个函数中调用都是可以的。非常简单，只需要先声明类，并且赋值给其正确的参数就可以了。
+    MatManager mm = new MatManager(mImg, picBox);
+    mm.Start();
