@@ -10,7 +10,7 @@
             if(this.picBox.InvokeRequired)
             {
                 SetPicBoxCallback d = new SetPicBoxCallback(SetPicBox);
-                this.Invoke(d, new object[] { bmp });
+                this.picBox.Invoke(d, new object[] { bmp });
             }
             else
             {
