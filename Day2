@@ -1,0 +1,46 @@
+C#多线程学习（1）——利用多线程获取本机IP地址
+（1）引入头声明
+using System.Net;
+using System.Net.Sockets;
+using System.Threading;
+（2）由于使用线程获取的内容要反映到前台的窗体控件上，因此这里做一个窗体控件的委托。
+
+ //此委托允许异步的调用为TextBox控件设置文本
+  delegate void SetTextBoxStringCallback(string text);
+  //这种方法演示如何在线程安全的模式下调用Windows窗体上的控件
+  private void SetText(string text)//LocalTP为TextBox控件的name
+   {
+       if(this.LocalIP.InvokeRequired)//InvokeRequired属性为真，表明有一个创建该控件的线程想访问这个界面控件
+       {
+           SetTextBoxStringCallback d = new SetTextBoxStringCallback(SetText);
+           //Invoke有两个重载函数：一个是没有参数的，一个是带有数组类型参数的。这里使用的是有数组类型参数的函数。
+           this.Invoke(d, new object[] { text });
+       }
+       else
+       {
+           this.LocalIP.Text = text;//设置TextBox控件的文本为需要的文本
+       }
+   }
+   //线程函数：获取本机的IP地址
+        public void GetIP()
+        {
+            string hostname = Dns.GetHostName();
+            IPHostEntry localhost = Dns.GetHostEntry(hostname);
+            IPAddress[] localAddr = localhost.AddressList;
+            foreach (IPAddress ipa in localAddr)
+            {
+                if (ipa.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    SetText(ipa.ToString());
+                    break;
+                }
+            }
+        }
+    //线程的启动在窗体的Load事件中
+        private void frmMain_Load(object sender, EventArgs e)
+        {
+            Thread thread1 = new Thread(new ThreadStart(GetIP));
+            thread1.Start();
+        }
+       结果能够准确获得本地的IP地址。这里获取的是IPV4地址。
+        
